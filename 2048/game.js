@@ -101,21 +101,7 @@ class Game2048 {
     }
 
     addRandomTile() {
-        // 先重置grid，确保与tiles状态一致
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                this.grid[i][j] = null;
-            }
-        }
-
-        // 重新填充grid
-        this.tiles.forEach(tile => {
-            if (tile.element && tile.element.isConnected && tile.element.style.opacity !== '0') {
-                this.grid[tile.row][tile.col] = tile;
-            }
-        });
-
-        // 找出空格子
+        // 直接从grid中找出空格子
         const emptyCells = [];
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
@@ -125,15 +111,12 @@ class Game2048 {
             }
         }
 
+        // 只在有空格子时添加新方块
         if (emptyCells.length > 0) {
             const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             const value = Math.random() < 0.9 ? 2 : 4;
             const tile = this.createTile(value, randomCell.row, randomCell.col, true);
             this.grid[randomCell.row][randomCell.col] = tile;
-            console.log('Added new tile:', value, 'at', randomCell.row, randomCell.col);
-            console.log('Total empty cells:', emptyCells.length);
-        } else {
-            console.log('No empty cells for new tile');
         }
     }
 
@@ -176,15 +159,10 @@ class Game2048 {
         }
 
         if (moved) {
-            console.log('Key move executed, empty cells before:', this.countEmptyCells());
             setTimeout(() => {
-                console.log('Starting cleanup...');
                 this.cleanupTiles();
-                console.log('After cleanup - empty cells:', this.countEmptyCells());
-                console.log('Adding random tile...');
                 this.addRandomTile();
                 this.updateDisplay();
-                console.log('After update - empty cells:', this.countEmptyCells());
 
                 if (this.isGameOver()) {
                     this.gameOver = true;
@@ -269,16 +247,21 @@ class Game2048 {
     }
 
     cleanupTiles() {
-        // 移除所有被隐藏的方块元素
-        this.tiles = this.tiles.filter(tile => {
-            if (tile.element && tile.element.style.opacity === '0') {
-                if (tile.element.isConnected) {
-                    tile.element.remove();
-                }
-                return false;
+        // 创建一个新的tiles数组，只保留可见的方块
+        const visibleTiles = [];
+
+        // 遍历所有tiles，只保留可见的
+        this.tiles.forEach(tile => {
+            if (tile.element && tile.element.isConnected && tile.element.style.opacity !== '0') {
+                visibleTiles.push(tile);
+            } else if (tile.element && tile.element.isConnected) {
+                // 移除不可见的方块
+                tile.element.remove();
             }
-            return true;
         });
+
+        // 更新tiles数组
+        this.tiles = visibleTiles;
     }
 
     moveLeft() {
@@ -626,18 +609,7 @@ class Game2048 {
         }
     }
 
-    countEmptyCells() {
-        let count = 0;
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                if (this.grid[i][j] === null) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
+    
     
     updateDisplay() {
         this.scoreElement.textContent = this.score;
