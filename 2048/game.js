@@ -408,15 +408,18 @@ class Game2048 {
         }
 
         // 处理合并和移动
-        const mergedTiles = [];
-        let writeIndex = this.size - 1;
+        const result = [];
+        let resultIndex = 0;
 
+        // 从右到左遍历
         for (let i = 0; i < newTiles.length; i++) {
+            // 检查是否有可以合并的方块
             if (i + 1 < newTiles.length &&
                 newTiles[i].value === newTiles[i + 1].value &&
                 !newTiles[i].merged &&
                 !newTiles[i + 1].merged) {
-                // 合并两个方块
+
+                // 合并
                 const tile1 = newTiles[i];
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
@@ -431,37 +434,39 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在正确位置
-                tile1.row = row;
-                tile1.col = writeIndex;
-                mergedTiles.push(tile1);
+                // 放置在正确位置（从右侧开始）
+                result[resultIndex] = tile1;
                 this.score += mergedValue;
-                writeIndex--;
+                resultIndex++;
 
                 i++; // 跳过已合并的方块
             } else if (!newTiles[i].merged) {
-                // 移动方块到新位置
-                const tile = newTiles[i];
-                if (tile.col !== writeIndex || tile.row !== row) {
-                    tile.row = row;
-                    tile.col = writeIndex;
-                    this.updateTilePosition(tile);
-                    moved = true;
-                }
-                mergedTiles.push(tile);
-                writeIndex--;
+                // 直接放入结果数组
+                result[resultIndex] = newTiles[i];
+                resultIndex++;
             }
         }
 
-        // 更新这一行的grid
+        // 更新grid - 先清空整行
         for (let j = 0; j < this.size; j++) {
             this.grid[row][j] = null;
         }
 
-        // 从右到左放置方块
-        mergedTiles.reverse().forEach((tile, index) => {
-            this.grid[row][this.size - 1 - index] = tile;
-        });
+        // 从右侧开始放置方块
+        for (let i = 0; i < this.size; i++) {
+            const tile = result[i];
+            if (tile) {
+                // 计算新的列位置（从右侧开始）
+                const targetCol = this.size - 1 - i;
+                if (tile.row !== row || tile.col !== targetCol) {
+                    tile.row = row;
+                    tile.col = targetCol;
+                    this.updateTilePosition(tile);
+                    moved = true;
+                }
+                this.grid[row][targetCol] = tile;
+            }
+        }
 
         return moved;
     }
