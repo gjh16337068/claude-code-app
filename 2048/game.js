@@ -114,6 +114,9 @@ class Game2048 {
             const value = Math.random() < 0.9 ? 2 : 4;
             const tile = this.createTile(value, randomCell.row, randomCell.col, true);
             this.grid[randomCell.row][randomCell.col] = tile;
+            console.log('Added new tile:', { value, row: randomCell.row, col: randomCell.col });
+        } else {
+            console.log('No empty cells available');
         }
     }
 
@@ -156,8 +159,12 @@ class Game2048 {
         }
 
         if (moved) {
+            console.log('Key move executed, empty cells before:', this.countEmptyCells());
             setTimeout(() => {
+                console.log('Starting cleanup...');
                 this.cleanupTiles();
+                console.log('Cleanup done, empty cells:', this.countEmptyCells());
+                console.log('Adding random tile...');
                 this.addRandomTile();
                 this.updateDisplay();
 
@@ -244,32 +251,36 @@ class Game2048 {
     }
 
     cleanupTiles() {
-        // 先重置所有grid位置为null
+        // 找出所有可见的方块
+        const visibleTiles = this.tiles.filter(tile => {
+            const isVisible = tile.element &&
+                             tile.element.isConnected &&
+                             tile.element.style.opacity !== '0' &&
+                             !tile.element.classList.contains('merged');
+            return isVisible;
+        });
+
+        // 更新grid，只保留可见的方块
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 this.grid[i][j] = null;
             }
         }
 
-        // 重新填充grid，只保留可见且未合并的方块
-        this.tiles = this.tiles.filter(tile => {
-            const isMerged = tile.element && tile.element.classList.contains('merged');
-            const isHidden = tile.element && tile.element.style.opacity === '0';
+        // 重新将可见的方块放入grid
+        visibleTiles.forEach(tile => {
+            this.grid[tile.row][tile.col] = tile;
+        });
 
-            if (!isMerged && !isHidden && tile.element && tile.element.isConnected) {
-                // 重新设置tile的DOM样式
-                tile.element.style.opacity = '1';
-                tile.element.style.zIndex = '10';
-                tile.element.classList.remove('merged');
+        // 更新tiles数组
+        this.tiles = visibleTiles;
 
-                // 确保tile的位置在grid中正确
-                this.grid[tile.row][tile.col] = tile;
-                return true;
-            } else if (tile.element && tile.element.isConnected) {
-                // 移除被合并或隐藏的方块
-                tile.element.remove();
-            }
-            return false;
+        // 重置所有方块的DOM样式
+        this.tiles.forEach(tile => {
+            tile.element.style.opacity = '1';
+            tile.element.style.zIndex = '10';
+            tile.element.classList.remove('merged');
+            tile.merged = false;
         });
     }
 
@@ -614,6 +625,18 @@ class Game2048 {
         }
     }
 
+    countEmptyCells() {
+        let count = 0;
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                if (this.grid[i][j] === null) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     updateDisplay() {
         this.scoreElement.textContent = this.score;
         this.bestScoreElement.textContent = this.bestScore;
@@ -624,6 +647,7 @@ class Game2048 {
                 this.updateTilePosition(tile);
             }
         });
+        console.log('Current grid state:', this.countEmptyCells(), 'empty cells');
     }
 }
 
