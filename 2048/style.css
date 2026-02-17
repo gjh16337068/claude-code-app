@@ -1,0 +1,238 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 48px;
+    font-weight: bold;
+    color: #776e65;
+}
+
+.scores {
+    display: flex;
+    gap: 10px;
+}
+
+.score-container {
+    background: #bbada0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.score-label {
+    font-size: 12px;
+    color: #eee4da;
+    margin-bottom: 5px;
+}
+
+.score {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.controls {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.new-game-btn {
+    background: #8f7a66;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: bold;
+}
+
+.new-game-btn:hover {
+    background: #9f8b77;
+}
+
+.instructions {
+    text-align: center;
+    color: #776e65;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.game-container {
+    position: relative;
+    background: #bbada0;
+    border-radius: 10px;
+    padding: 10px;
+    aspect-ratio: 1;
+    overflow: hidden;
+}
+
+/* 背景网格 - 固定的空格子 */
+.grid-background {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    height: 100%;
+}
+
+.grid-bg-cell {
+    background: rgba(238, 228, 218, 0.35);
+    border-radius: 6px;
+}
+
+/* 移动方块层 */
+.tiles-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+}
+
+.tile {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #776e65;
+    border-radius: 6px;
+    transition: top 150ms ease-in-out, left 150ms ease-in-out;
+    z-index: 10;
+}
+
+/* 新方块出现动画 */
+.tile.new {
+    animation: appear 200ms ease-in-out;
+}
+
+/* 合并动画 */
+.tile.merged {
+    animation: pop 200ms ease-in-out;
+    z-index: 20;
+}
+
+@keyframes appear {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 方块颜色样式 */
+.tile.tile-2 { background: #eee4da; }
+.tile.tile-4 { background: #ede0c8; }
+.tile.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 28px; }
+.tile.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 28px; }
+.tile.tile-512 { background: #edc850; color: #f9f6f2; font-size: 28px; }
+.tile.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 24px; }
+.tile.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 24px; }
+.tile.tile-super { background: #3c3a32; color: #f9f6f2; font-size: 20px; }
+
+.game-over-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(238, 228, 218, 0.73);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 100;
+}
+
+.game-over-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.game-over-text {
+    font-size: 40px;
+    font-weight: bold;
+    color: #776e65;
+    margin-bottom: 20px;
+}
+
+.restart-btn {
+    background: #8f7a66;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: bold;
+}
+
+.restart-btn:hover {
+    background: #9f8b77;
+}
+
+@media (max-width: 400px) {
+    .container {
+        padding: 15px;
+    }
+    .header h1 {
+        font-size: 36px;
+    }
+}

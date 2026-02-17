@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>2048 游戏</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="assets/icon-512.png">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2048</h1>
+            <div class="scores">
+                <div class="score-container">
+                    <div class="score-label">分数</div>
+                    <div class="score" id="score">0</div>
+                </div>
+                <div class="score-container">
+                    <div class="score-label">最高分</div>
+                    <div class="score" id="best-score">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="new-game-btn" id="new-game-btn">新游戏</button>
+        </div>
+        <p class="instructions">使用方向键或WASD移动方块，或滑动屏幕</p>
+        <div class="game-container" id="game-container">
+            <div class="grid-background" id="grid-background"></div>
+            <div class="tiles-container" id="tiles-container"></div>
+            <div class="game-over-overlay" id="game-over-overlay">
+                <div class="game-over-text">游戏结束!</div>
+                <button class="restart-btn" id="restart-btn">再来一局</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // Full screen support
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Add fullscreen button
+        const container = document.querySelector('.container');
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'fullscreen-btn';
+        fullscreenBtn.textContent = '全屏';
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+        container.appendChild(fullscreenBtn);
+
+        // Touch gesture support
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const minSwipeDistance = 50;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (Math.abs(deltaX) > minSwipeDistance) {
+                    if (deltaX > 0) {
+                        // Swipe right
+                        simulateKeyPress('ArrowRight');
+                    } else {
+                        // Swipe left
+                        simulateKeyPress('ArrowLeft');
+                    }
+                }
+            } else {
+                if (Math.abs(deltaY) > minSwipeDistance) {
+                    if (deltaY > 0) {
+                        // Swipe down
+                        simulateKeyPress('ArrowDown');
+                    } else {
+                        // Swipe up
+                        simulateKeyPress('ArrowUp');
+                    }
+                }
+            }
+        }
+
+        function simulateKeyPress(key) {
+            const event = new KeyboardEvent('keydown', {
+                key: key,
+                code: key,
+                bubbles: true,
+                cancelable: true
+            });
+            document.dispatchEvent(event);
+        }
+    </script>
+    <script src="game.js"></script>
+</body>
+</html>
