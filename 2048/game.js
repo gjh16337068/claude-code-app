@@ -244,26 +244,42 @@ class Game2048 {
     }
 
     cleanupTiles() {
-        // 找出所有网格中存在的tile
-        const gridTileIds = new Set();
+        // 创建一个Set包含当前所有在网格中的tile ID
+        const currentTileIds = new Set();
+
+        // 先重置所有grid位置为null
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
-                if (this.grid[i][j]) {
-                    gridTileIds.add(this.grid[i][j].id);
-                }
+                this.grid[i][j] = null;
             }
         }
 
-        // 移除不在网格中的tile
-        this.tiles = this.tiles.filter(tile => {
-            if (!gridTileIds.has(tile.id)) {
-                if (tile.element && tile.element.isConnected) {
-                    tile.element.remove();
-                }
-                return false;
+        // 重新填充grid并收集当前tile ID
+        this.tiles.forEach(tile => {
+            if (tile.element && tile.element.isConnected && tile.element.style.opacity !== '0') {
+                this.grid[tile.row][tile.col] = tile;
+                currentTileIds.add(tile.id);
             }
-            return true;
         });
+
+        // 移除已经被隐藏（合并）的tile
+        this.tiles = this.tiles.filter(tile => {
+            if (tile.element && tile.element.isConnected && tile.element.style.opacity !== '0') {
+                return true;
+            } else if (tile.element && tile.element.isConnected) {
+                tile.element.remove();
+            }
+            return false;
+        });
+
+        // 确保grid中正确引用了剩余的tiles
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                if (this.grid[i][j] && !currentTileIds.has(this.grid[i][j].id)) {
+                    this.grid[i][j] = null;
+                }
+            }
+        }
     }
 
     moveLeft() {
@@ -324,10 +340,7 @@ class Game2048 {
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                // 移动第二个方块到第一个位置
-                tile2.col = i;
-                this.updateTilePosition(tile2);
-                // 隐藏被合并的方块
+                // 移除被合并的方块（不添加到merged数组）
                 tile2.element.style.opacity = '0';
                 tile2.element.style.zIndex = '5';
                 moved = true;
@@ -349,12 +362,18 @@ class Game2048 {
         // 更新网格
         for (let j = 0; j < this.size; j++) {
             const tile = merged[j] || null;
-            if (tile && tile.col !== j) {
-                tile.col = j;
-                this.updateTilePosition(tile);
-                moved = true;
+            // 只有当方块的实际位置与网格位置不同时才更新
+            if (tile) {
+                if (tile.row !== row || tile.col !== j) {
+                    tile.row = row;
+                    tile.col = j;
+                    this.updateTilePosition(tile);
+                    moved = true;
+                }
+                this.grid[row][j] = tile;
+            } else {
+                this.grid[row][j] = null;
             }
-            this.grid[row][j] = tile;
         }
 
         return moved;
@@ -385,8 +404,6 @@ class Game2048 {
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                tile2.col = this.size - 1 - i;
-                this.updateTilePosition(tile2);
                 tile2.element.style.opacity = '0';
                 tile2.element.style.zIndex = '5';
 
@@ -406,12 +423,18 @@ class Game2048 {
         // 更新网格（反转）
         for (let j = 0; j < this.size; j++) {
             const tile = merged[j] || null;
-            if (tile && tile.col !== this.size - 1 - j) {
-                tile.col = this.size - 1 - j;
-                this.updateTilePosition(tile);
-                moved = true;
+            if (tile) {
+                const targetCol = this.size - 1 - j;
+                if (tile.row !== row || tile.col !== targetCol) {
+                    tile.row = row;
+                    tile.col = targetCol;
+                    this.updateTilePosition(tile);
+                    moved = true;
+                }
+                this.grid[row][targetCol] = tile;
+            } else {
+                this.grid[row][this.size - 1 - j] = null;
             }
-            this.grid[row][this.size - 1 - j] = tile;
         }
 
         return moved;
@@ -442,8 +465,6 @@ class Game2048 {
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                tile2.row = i;
-                this.updateTilePosition(tile2);
                 tile2.element.style.opacity = '0';
                 tile2.element.style.zIndex = '5';
 
@@ -463,12 +484,17 @@ class Game2048 {
         // 更新网格
         for (let i = 0; i < this.size; i++) {
             const tile = merged[i] || null;
-            if (tile && tile.row !== i) {
-                tile.row = i;
-                this.updateTilePosition(tile);
-                moved = true;
+            if (tile) {
+                if (tile.row !== i || tile.col !== col) {
+                    tile.row = i;
+                    tile.col = col;
+                    this.updateTilePosition(tile);
+                    moved = true;
+                }
+                this.grid[i][col] = tile;
+            } else {
+                this.grid[i][col] = null;
             }
-            this.grid[i][col] = tile;
         }
 
         return moved;
@@ -499,8 +525,6 @@ class Game2048 {
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                tile2.row = this.size - 1 - i;
-                this.updateTilePosition(tile2);
                 tile2.element.style.opacity = '0';
                 tile2.element.style.zIndex = '5';
 
@@ -520,12 +544,18 @@ class Game2048 {
         // 更新网格（反转）
         for (let i = 0; i < this.size; i++) {
             const tile = merged[i] || null;
-            if (tile && tile.row !== this.size - 1 - i) {
-                tile.row = this.size - 1 - i;
-                this.updateTilePosition(tile);
-                moved = true;
+            if (tile) {
+                const targetRow = this.size - 1 - i;
+                if (tile.row !== targetRow || tile.col !== col) {
+                    tile.row = targetRow;
+                    tile.col = col;
+                    this.updateTilePosition(tile);
+                    moved = true;
+                }
+                this.grid[targetRow][col] = tile;
+            } else {
+                this.grid[this.size - 1 - i][col] = null;
             }
-            this.grid[this.size - 1 - i][col] = tile;
         }
 
         return moved;
