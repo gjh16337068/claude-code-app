@@ -18,6 +18,7 @@ class Game2048 {
         this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
         this.gameOver = false;
         this.tileIdCounter = 0;
+        this.isProcessingMove = false;
 
         this.gameContainer = document.getElementById('game-container');
         this.gridBackground = document.getElementById('grid-background');
@@ -101,12 +102,27 @@ class Game2048 {
     }
 
     addRandomTile() {
-        // 直接从grid中找出空格子
+        // 双重检查：从grid找出空格子，同时确保tiles数组中没有冲突
         const emptyCells = [];
+
+        // 先检查grid
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
+                // grid位置为空，且没有tile引用这个位置
                 if (this.grid[i][j] === null) {
-                    emptyCells.push({ row: i, col: j });
+                    let hasTile = false;
+                    for (const tile of this.tiles) {
+                        if (tile.row === i && tile.col === j &&
+                            tile.element &&
+                            tile.element.isConnected &&
+                            tile.element.style.opacity !== '0') {
+                            hasTile = true;
+                            break;
+                        }
+                    }
+                    if (!hasTile) {
+                        emptyCells.push({ row: i, col: j });
+                    }
                 }
             }
         }
@@ -117,6 +133,9 @@ class Game2048 {
             const value = Math.random() < 0.9 ? 2 : 4;
             const tile = this.createTile(value, randomCell.row, randomCell.col, true);
             this.grid[randomCell.row][randomCell.col] = tile;
+
+            // 确保没有重复添加
+            this.tiles.push(tile);
         }
     }
 
@@ -130,7 +149,7 @@ class Game2048 {
     }
 
     handleKeyPress(e) {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isProcessingMove) return;
 
         let moved = false;
         switch (e.key) {
@@ -159,6 +178,7 @@ class Game2048 {
         }
 
         if (moved) {
+            this.isProcessingMove = true;
             setTimeout(() => {
                 this.cleanupTiles();
                 this.addRandomTile();
@@ -169,6 +189,7 @@ class Game2048 {
                     this.gameOverOverlay.classList.add('show');
                     this.saveBestScore();
                 }
+                this.isProcessingMove = false;
             }, 100);
         }
     }
@@ -209,6 +230,8 @@ class Game2048 {
             return; // Not a significant swipe
         }
 
+        if (this.isProcessingMove) return;
+
         let moved = false;
 
         if (absDeltaX > absDeltaY) {
@@ -232,6 +255,7 @@ class Game2048 {
         }
 
         if (moved) {
+            this.isProcessingMove = true;
             setTimeout(() => {
                 this.cleanupTiles();
                 this.addRandomTile();
@@ -242,6 +266,7 @@ class Game2048 {
                     this.gameOverOverlay.classList.add('show');
                     this.saveBestScore();
                 }
+                this.isProcessingMove = false;
             }, 100);
         }
     }
@@ -356,11 +381,12 @@ class Game2048 {
             }
         }
 
-        // 更新这一行的grid
+        // 更新这一行的grid，先清空整行
         for (let j = 0; j < this.size; j++) {
             this.grid[row][j] = null;
         }
 
+        // 然后放置处理后的方块
         mergedTiles.forEach((tile, index) => {
             this.grid[row][index] = tile;
         });
