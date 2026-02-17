@@ -574,7 +574,7 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在正确位置
+                // 放置在正确位置（从底部开始）
                 tile1.row = writeIndex;
                 tile1.col = col;
                 mergedTiles.push(tile1);
@@ -601,7 +601,7 @@ class Game2048 {
             this.grid[i][col] = null;
         }
 
-        // 从下到上放置方块
+        // 从底部开始放置方块
         mergedTiles.reverse().forEach((tile, index) => {
             this.grid[this.size - 1 - index][col] = tile;
         });
