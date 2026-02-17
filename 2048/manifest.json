@@ -2,7 +2,7 @@
   "name": "2048 游戏",
   "short_name": "2048",
   "description": "经典的2048数字合并游戏",
-  "start_url": "./",
+  "start_url": "/claude-code-app/2048/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
@@ -32,7 +32,7 @@
       "type": "image/png"
     },
     {
-      "assets/splash-1536x2048.png",
+      "src": "assets/splash-1536x2048.png",
       "sizes": "1536x2048",
       "type": "image/png"
     }
