@@ -244,31 +244,14 @@ class Game2048 {
     }
 
     cleanupTiles() {
-        // 重置所有grid位置为null
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                this.grid[i][j] = null;
-            }
-        }
-
-        // 过滤出可见的方块并重新放入grid
+        // 移除所有被隐藏的方块元素
         this.tiles = this.tiles.filter(tile => {
-            // 如果元素已断开连接或透明度为0，说明它已被合并
-            if (!tile.element || !tile.element.isConnected || tile.element.style.opacity === '0') {
-                if (tile.element && tile.element.isConnected) {
+            if (tile.element && tile.element.style.opacity === '0') {
+                if (tile.element.isConnected) {
                     tile.element.remove();
                 }
                 return false;
             }
-
-            // 重置方块的合并状态
-            tile.merged = false;
-            tile.element.classList.remove('merged');
-            tile.element.style.opacity = '1';
-            tile.element.style.zIndex = '10';
-
-            // 放入grid
-            this.grid[tile.row][tile.col] = tile;
             return true;
         });
     }
@@ -320,21 +303,20 @@ class Game2048 {
         }
 
         // 处理合并和移动
-        const result = [];
-        let resultIndex = 0;
+        const mergedTiles = [];
+        let writeIndex = 0;
 
         for (let i = 0; i < newTiles.length; i++) {
             if (i + 1 < newTiles.length &&
                 newTiles[i].value === newTiles[i + 1].value &&
                 !newTiles[i].merged &&
                 !newTiles[i + 1].merged) {
-                // 合并
+                // 合并两个方块
                 const tile1 = newTiles[i];
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                // 标记第二个方块为合并并隐藏
-                tile2.merged = true;
+                // 隐藏第二个方块
                 tile2.element.style.opacity = '0';
                 moved = true;
 
@@ -344,34 +326,36 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在结果数组中
-                result[resultIndex] = tile1;
+                // 放置在正确位置
+                tile1.row = row;
+                tile1.col = writeIndex;
+                mergedTiles.push(tile1);
                 this.score += mergedValue;
-                resultIndex++;
+                writeIndex++;
 
                 i++; // 跳过已合并的方块
             } else if (!newTiles[i].merged) {
-                // 放置在结果数组中
-                result[resultIndex] = newTiles[i];
-                resultIndex++;
-            }
-        }
-
-        // 更新网格和方块位置
-        for (let j = 0; j < this.size; j++) {
-            const tile = result[j] || null;
-            if (tile) {
-                if (tile.row !== row || tile.col !== j) {
+                // 移动方块到新位置
+                const tile = newTiles[i];
+                if (tile.col !== writeIndex || tile.row !== row) {
                     tile.row = row;
-                    tile.col = j;
+                    tile.col = writeIndex;
                     this.updateTilePosition(tile);
                     moved = true;
                 }
-                this.grid[row][j] = tile;
-            } else {
-                this.grid[row][j] = null;
+                mergedTiles.push(tile);
+                writeIndex++;
             }
         }
+
+        // 更新这一行的grid
+        for (let j = 0; j < this.size; j++) {
+            this.grid[row][j] = null;
+        }
+
+        mergedTiles.forEach((tile, index) => {
+            this.grid[row][index] = tile;
+        });
 
         return moved;
     }
@@ -390,21 +374,20 @@ class Game2048 {
         }
 
         // 处理合并和移动
-        const result = [];
-        let resultIndex = 0;
+        const mergedTiles = [];
+        let writeIndex = this.size - 1;
 
         for (let i = 0; i < newTiles.length; i++) {
             if (i + 1 < newTiles.length &&
                 newTiles[i].value === newTiles[i + 1].value &&
                 !newTiles[i].merged &&
                 !newTiles[i + 1].merged) {
-                // 合并
+                // 合并两个方块
                 const tile1 = newTiles[i];
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                // 标记第二个方块为合并并隐藏
-                tile2.merged = true;
+                // 隐藏第二个方块
                 tile2.element.style.opacity = '0';
                 moved = true;
 
@@ -414,35 +397,37 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在结果数组中
-                result[resultIndex] = tile1;
+                // 放置在正确位置
+                tile1.row = row;
+                tile1.col = writeIndex;
+                mergedTiles.push(tile1);
                 this.score += mergedValue;
-                resultIndex++;
+                writeIndex--;
 
                 i++; // 跳过已合并的方块
             } else if (!newTiles[i].merged) {
-                // 放置在结果数组中
-                result[resultIndex] = newTiles[i];
-                resultIndex++;
-            }
-        }
-
-        // 更新网格（从右到左）
-        for (let j = 0; j < this.size; j++) {
-            const tile = result[j] || null;
-            if (tile) {
-                const targetCol = this.size - 1 - j;
-                if (tile.row !== row || tile.col !== targetCol) {
+                // 移动方块到新位置
+                const tile = newTiles[i];
+                if (tile.col !== writeIndex || tile.row !== row) {
                     tile.row = row;
-                    tile.col = targetCol;
+                    tile.col = writeIndex;
                     this.updateTilePosition(tile);
                     moved = true;
                 }
-                this.grid[row][targetCol] = tile;
-            } else {
-                this.grid[row][this.size - 1 - j] = null;
+                mergedTiles.push(tile);
+                writeIndex--;
             }
         }
+
+        // 更新这一行的grid
+        for (let j = 0; j < this.size; j++) {
+            this.grid[row][j] = null;
+        }
+
+        // 从右到左放置方块
+        mergedTiles.reverse().forEach((tile, index) => {
+            this.grid[row][this.size - 1 - index] = tile;
+        });
 
         return moved;
     }
@@ -461,21 +446,20 @@ class Game2048 {
         }
 
         // 处理合并和移动
-        const result = [];
-        let resultIndex = 0;
+        const mergedTiles = [];
+        let writeIndex = 0;
 
         for (let i = 0; i < newTiles.length; i++) {
             if (i + 1 < newTiles.length &&
                 newTiles[i].value === newTiles[i + 1].value &&
                 !newTiles[i].merged &&
                 !newTiles[i + 1].merged) {
-                // 合并
+                // 合并两个方块
                 const tile1 = newTiles[i];
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                // 标记第二个方块为合并并隐藏
-                tile2.merged = true;
+                // 隐藏第二个方块
                 tile2.element.style.opacity = '0';
                 moved = true;
 
@@ -485,34 +469,36 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在结果数组中
-                result[resultIndex] = tile1;
+                // 放置在正确位置
+                tile1.row = writeIndex;
+                tile1.col = col;
+                mergedTiles.push(tile1);
                 this.score += mergedValue;
-                resultIndex++;
+                writeIndex++;
 
                 i++; // 跳过已合并的方块
             } else if (!newTiles[i].merged) {
-                // 放置在结果数组中
-                result[resultIndex] = newTiles[i];
-                resultIndex++;
-            }
-        }
-
-        // 更新网格
-        for (let i = 0; i < this.size; i++) {
-            const tile = result[i] || null;
-            if (tile) {
-                if (tile.row !== i || tile.col !== col) {
-                    tile.row = i;
+                // 移动方块到新位置
+                const tile = newTiles[i];
+                if (tile.row !== writeIndex || tile.col !== col) {
+                    tile.row = writeIndex;
                     tile.col = col;
                     this.updateTilePosition(tile);
                     moved = true;
                 }
-                this.grid[i][col] = tile;
-            } else {
-                this.grid[i][col] = null;
+                mergedTiles.push(tile);
+                writeIndex++;
             }
         }
+
+        // 更新这一列的grid
+        for (let i = 0; i < this.size; i++) {
+            this.grid[i][col] = null;
+        }
+
+        mergedTiles.forEach((tile, index) => {
+            this.grid[index][col] = tile;
+        });
 
         return moved;
     }
@@ -531,21 +517,20 @@ class Game2048 {
         }
 
         // 处理合并和移动
-        const result = [];
-        let resultIndex = 0;
+        const mergedTiles = [];
+        let writeIndex = this.size - 1;
 
         for (let i = 0; i < newTiles.length; i++) {
             if (i + 1 < newTiles.length &&
                 newTiles[i].value === newTiles[i + 1].value &&
                 !newTiles[i].merged &&
                 !newTiles[i + 1].merged) {
-                // 合并
+                // 合并两个方块
                 const tile1 = newTiles[i];
                 const tile2 = newTiles[i + 1];
                 const mergedValue = tile1.value * 2;
 
-                // 标记第二个方块为合并并隐藏
-                tile2.merged = true;
+                // 隐藏第二个方块
                 tile2.element.style.opacity = '0';
                 moved = true;
 
@@ -555,35 +540,37 @@ class Game2048 {
                 tile1.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
                 tile1.merged = true;
 
-                // 放置在结果数组中
-                result[resultIndex] = tile1;
+                // 放置在正确位置
+                tile1.row = writeIndex;
+                tile1.col = col;
+                mergedTiles.push(tile1);
                 this.score += mergedValue;
-                resultIndex++;
+                writeIndex--;
 
                 i++; // 跳过已合并的方块
             } else if (!newTiles[i].merged) {
-                // 放置在结果数组中
-                result[resultIndex] = newTiles[i];
-                resultIndex++;
-            }
-        }
-
-        // 更新网格（反转）
-        for (let i = 0; i < this.size; i++) {
-            const tile = result[i] || null;
-            if (tile) {
-                const targetRow = this.size - 1 - i;
-                if (tile.row !== targetRow || tile.col !== col) {
-                    tile.row = targetRow;
+                // 移动方块到新位置
+                const tile = newTiles[i];
+                if (tile.row !== writeIndex || tile.col !== col) {
+                    tile.row = writeIndex;
                     tile.col = col;
                     this.updateTilePosition(tile);
                     moved = true;
                 }
-                this.grid[targetRow][col] = tile;
-            } else {
-                this.grid[this.size - 1 - i][col] = null;
+                mergedTiles.push(tile);
+                writeIndex--;
             }
         }
+
+        // 更新这一列的grid
+        for (let i = 0; i < this.size; i++) {
+            this.grid[i][col] = null;
+        }
+
+        // 从下到上放置方块
+        mergedTiles.reverse().forEach((tile, index) => {
+            this.grid[this.size - 1 - index][col] = tile;
+        });
 
         return moved;
     }
