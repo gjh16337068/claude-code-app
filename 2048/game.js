@@ -174,7 +174,7 @@ class Game2048 {
                     this.saveBestScore();
                 }
                 this.isProcessingMove = false;
-            }, 100);
+            }, 50);
         }
     }
 
@@ -252,7 +252,7 @@ class Game2048 {
                     this.saveBestScore();
                 }
                 this.isProcessingMove = false;
-            }, 100);
+            }, 50);
         }
     }
 
