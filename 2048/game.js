@@ -113,28 +113,12 @@ class Game2048 {
             }
         }
 
-        console.log('addRandomTile called, emptyCells:', emptyCells.length);
-
         // 只在有空格子时添加新方块
         if (emptyCells.length > 0) {
             const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             const value = Math.random() < 0.9 ? 2 : 4;
-            console.log('Creating new tile at:', randomCell, 'value:', value);
             const tile = this.createTile(value, randomCell.row, randomCell.col, true);
             this.grid[randomCell.row][randomCell.col] = tile;
-        } else {
-            console.log('No empty cells! Grid state:');
-            this.printGridState();
-        }
-    }
-
-    printGridState() {
-        for (let i = 0; i < this.size; i++) {
-            let row = '';
-            for (let j = 0; j < this.size; j++) {
-                row += (this.grid[i][j] ? this.grid[i][j].value : '.') + ' ';
-            }
-            console.log(row);
         }
     }
 
@@ -177,7 +161,6 @@ class Game2048 {
         }
 
         if (moved) {
-            console.log('Movement detected! Will add random tile...');
             this.isProcessingMove = true;
             setTimeout(() => {
                 // 先清理已断开的 tiles（合并时移除的元素）
@@ -192,9 +175,6 @@ class Game2048 {
                 }
                 this.isProcessingMove = false;
             }, 100);
-        } else {
-            // 调试：如果没有移动，输出原因
-            console.log('No movement detected');
         }
     }
 
@@ -259,7 +239,6 @@ class Game2048 {
         }
 
         if (moved) {
-            console.log('Movement detected! Will add random tile...');
             this.isProcessingMove = true;
             setTimeout(() => {
                 // 先清理已断开的 tiles（合并时移除的元素）
@@ -274,9 +253,6 @@ class Game2048 {
                 }
                 this.isProcessingMove = false;
             }, 100);
-        } else {
-            // 调试：如果没有移动，输出原因
-            console.log('No movement detected');
         }
     }
 
@@ -322,10 +298,9 @@ class Game2048 {
             }
         }
 
-        console.log(`processRowLeft(${row}): collected ${tiles.length} tiles`);
-
         // 处理合并和移动
         const result = [];
+        let merged = false; // 跟踪是否有合并发生
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
@@ -333,8 +308,6 @@ class Game2048 {
                 // 合并两个方块
                 const nextTile = tiles[i + 1];
                 const mergedValue = tile.value * 2;
-
-                console.log(`Merging tiles: ${tile.value} + ${nextTile.value} = ${mergedValue}`);
 
                 // 隐藏第二个方块并移除
                 nextTile.element.remove();
@@ -348,6 +321,7 @@ class Game2048 {
 
                 result.push(tile);
                 i++; // 跳过已合并的方块
+                merged = true; // 标记发生了合并
             } else {
                 result.push(tile);
             }
@@ -370,12 +344,15 @@ class Game2048 {
 
             if (oldCol !== tile.col || oldRow !== tile.row) {
                 moved = true;
-                console.log(`Tile moved: (${oldRow},${oldCol}) -> (${tile.row},${tile.col})`);
             }
             tile.element.classList.remove('merged');
         });
 
-        console.log(`processRowLeft(${row}): moved = ${moved}`);
+        // 如果发生了合并，也视为有移动
+        if (merged) {
+            moved = true;
+        }
+
         return moved;
     }
 
@@ -391,6 +368,7 @@ class Game2048 {
 
         // 处理合并
         const result = [];
+        let merged = false;
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
@@ -411,6 +389,7 @@ class Game2048 {
 
                 result.push(tile);
                 i++; // 跳过已合并的方块
+                merged = true;
             } else {
                 result.push(tile);
             }
@@ -438,6 +417,10 @@ class Game2048 {
             tile.element.classList.remove('merged');
         });
 
+        if (merged) {
+            moved = true;
+        }
+
         return moved;
     }
 
@@ -453,6 +436,7 @@ class Game2048 {
 
         // 处理合并
         const result = [];
+        let merged = false;
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
@@ -473,6 +457,7 @@ class Game2048 {
 
                 result.push(tile);
                 i++; // 跳过已合并的方块
+                merged = true;
             } else {
                 result.push(tile);
             }
@@ -499,6 +484,10 @@ class Game2048 {
             tile.element.classList.remove('merged');
         });
 
+        if (merged) {
+            moved = true;
+        }
+
         return moved;
     }
 
@@ -514,6 +503,7 @@ class Game2048 {
 
         // 处理合并
         const result = [];
+        let merged = false;
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
@@ -534,6 +524,7 @@ class Game2048 {
 
                 result.push(tile);
                 i++; // 跳过已合并的方块
+                merged = true;
             } else {
                 result.push(tile);
             }
@@ -560,6 +551,10 @@ class Game2048 {
             }
             tile.element.classList.remove('merged');
         });
+
+        if (merged) {
+            moved = true;
+        }
 
         return moved;
     }
