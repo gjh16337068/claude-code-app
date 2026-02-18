@@ -285,24 +285,21 @@ class Game2048 {
     }
 
     processRowLeft(row) {
-        // 先收集该行的所有方块（忽略已隐藏的）
+        // 先收集该行的所有方块
         const tiles = [];
         for (let j = 0; j < this.size; j++) {
             const tile = this.grid[row][j];
             if (tile) {
-                tile.merged = false;
                 tiles.push(tile);
             }
         }
 
-        // 处理合并
+        // 处理合并和移动
         const result = [];
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
-                tile.value === tiles[i + 1].value &&
-                !tile.merged &&
-                !tiles[i + 1].merged) {
+                tile.value === tiles[i + 1].value) {
                 // 合并两个方块
                 const nextTile = tiles[i + 1];
                 const mergedValue = tile.value * 2;
@@ -315,7 +312,6 @@ class Game2048 {
                 tile.value = mergedValue;
                 tile.element.textContent = mergedValue;
                 tile.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
-                tile.merged = true;
                 this.score += mergedValue;
 
                 result.push(tile);
@@ -332,15 +328,17 @@ class Game2048 {
 
         let moved = false;
         result.forEach((tile, index) => {
-            // 如果位置改变了，就更新
-            if (tile.col !== index || tile.row !== row) {
-                tile.col = index;
-                tile.row = row;
-                this.updateTilePosition(tile);
+            const oldCol = tile.col;
+            const oldRow = tile.row;
+
+            tile.col = index;
+            tile.row = row;
+            this.grid[row][index] = tile;
+            this.updateTilePosition(tile);
+
+            if (oldCol !== tile.col || oldRow !== tile.row) {
                 moved = true;
             }
-            this.grid[row][index] = tile;
-            tile.merged = false;
             tile.element.classList.remove('merged');
         });
 
@@ -353,7 +351,6 @@ class Game2048 {
         for (let j = this.size - 1; j >= 0; j--) {
             const tile = this.grid[row][j];
             if (tile) {
-                tile.merged = false;
                 tiles.push(tile);
             }
         }
@@ -363,9 +360,7 @@ class Game2048 {
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
-                tile.value === tiles[i + 1].value &&
-                !tile.merged &&
-                !tiles[i + 1].merged) {
+                tile.value === tiles[i + 1].value) {
                 // 合并两个方块
                 const nextTile = tiles[i + 1];
                 const mergedValue = tile.value * 2;
@@ -378,7 +373,6 @@ class Game2048 {
                 tile.value = mergedValue;
                 tile.element.textContent = mergedValue;
                 tile.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
-                tile.merged = true;
                 this.score += mergedValue;
 
                 result.push(tile);
@@ -395,16 +389,18 @@ class Game2048 {
 
         let moved = false;
         result.forEach((tile, index) => {
+            const oldCol = tile.col;
+            const oldRow = tile.row;
             const targetCol = this.size - 1 - index;
-            // 如果位置改变了，就更新
-            if (tile.col !== targetCol || tile.row !== row) {
-                tile.col = targetCol;
-                tile.row = row;
-                this.updateTilePosition(tile);
+
+            tile.col = targetCol;
+            tile.row = row;
+            this.grid[row][targetCol] = tile;
+            this.updateTilePosition(tile);
+
+            if (oldCol !== tile.col || oldRow !== tile.row) {
                 moved = true;
             }
-            this.grid[row][targetCol] = tile;
-            tile.merged = false;
             tile.element.classList.remove('merged');
         });
 
@@ -417,7 +413,6 @@ class Game2048 {
         for (let i = 0; i < this.size; i++) {
             const tile = this.grid[i][col];
             if (tile) {
-                tile.merged = false;
                 tiles.push(tile);
             }
         }
@@ -427,9 +422,7 @@ class Game2048 {
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
-                tile.value === tiles[i + 1].value &&
-                !tile.merged &&
-                !tiles[i + 1].merged) {
+                tile.value === tiles[i + 1].value) {
                 // 合并两个方块
                 const nextTile = tiles[i + 1];
                 const mergedValue = tile.value * 2;
@@ -442,7 +435,6 @@ class Game2048 {
                 tile.value = mergedValue;
                 tile.element.textContent = mergedValue;
                 tile.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
-                tile.merged = true;
                 this.score += mergedValue;
 
                 result.push(tile);
@@ -459,15 +451,17 @@ class Game2048 {
 
         let moved = false;
         result.forEach((tile, index) => {
-            // 如果位置改变了，就更新
-            if (tile.row !== index || tile.col !== col) {
-                tile.row = index;
-                tile.col = col;
-                this.updateTilePosition(tile);
+            const oldRow = tile.row;
+            const oldCol = tile.col;
+
+            tile.row = index;
+            tile.col = col;
+            this.grid[index][col] = tile;
+            this.updateTilePosition(tile);
+
+            if (oldRow !== tile.row || oldCol !== tile.col) {
                 moved = true;
             }
-            this.grid[index][col] = tile;
-            tile.merged = false;
             tile.element.classList.remove('merged');
         });
 
@@ -480,7 +474,6 @@ class Game2048 {
         for (let i = this.size - 1; i >= 0; i--) {
             const tile = this.grid[i][col];
             if (tile) {
-                tile.merged = false;
                 tiles.push(tile);
             }
         }
@@ -490,9 +483,7 @@ class Game2048 {
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
             if (i < tiles.length - 1 &&
-                tile.value === tiles[i + 1].value &&
-                !tile.merged &&
-                !tiles[i + 1].merged) {
+                tile.value === tiles[i + 1].value) {
                 // 合并两个方块
                 const nextTile = tiles[i + 1];
                 const mergedValue = tile.value * 2;
@@ -505,7 +496,6 @@ class Game2048 {
                 tile.value = mergedValue;
                 tile.element.textContent = mergedValue;
                 tile.element.className = `tile tile-${mergedValue > 2048 ? 'super' : mergedValue} merged`;
-                tile.merged = true;
                 this.score += mergedValue;
 
                 result.push(tile);
@@ -522,16 +512,18 @@ class Game2048 {
 
         let moved = false;
         result.forEach((tile, index) => {
+            const oldRow = tile.row;
+            const oldCol = tile.col;
             const targetRow = this.size - 1 - index;
-            // 如果位置改变了，就更新
-            if (tile.row !== targetRow || tile.col !== col) {
-                tile.row = targetRow;
-                tile.col = col;
-                this.updateTilePosition(tile);
+
+            tile.row = targetRow;
+            tile.col = col;
+            this.grid[targetRow][col] = tile;
+            this.updateTilePosition(tile);
+
+            if (oldRow !== tile.row || oldCol !== tile.col) {
                 moved = true;
             }
-            this.grid[targetRow][col] = tile;
-            tile.merged = false;
             tile.element.classList.remove('merged');
         });
 
