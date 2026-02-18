@@ -163,6 +163,8 @@ class Game2048 {
         if (moved) {
             this.isProcessingMove = true;
             setTimeout(() => {
+                // 先清理已断开的 tiles（合并时移除的元素）
+                this.tiles = this.tiles.filter(tile => tile.element && tile.element.isConnected);
                 this.addRandomTile();
                 this.updateDisplay();
 
@@ -239,6 +241,8 @@ class Game2048 {
         if (moved) {
             this.isProcessingMove = true;
             setTimeout(() => {
+                // 先清理已断开的 tiles（合并时移除的元素）
+                this.tiles = this.tiles.filter(tile => tile.element && tile.element.isConnected);
                 this.addRandomTile();
                 this.updateDisplay();
 
