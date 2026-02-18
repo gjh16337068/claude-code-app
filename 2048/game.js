@@ -307,18 +307,10 @@ class Game2048 {
     processRowLeft(row) {
         let moved = false;
 
-        // 先重置合并标记
-        for (let j = 0; j < this.size; j++) {
-            const tile = this.grid[row][j];
-            if (tile) {
-                tile.merged = false;
-            }
-        }
-
         // 从左向右处理每一列
         for (let j = 1; j < this.size; j++) {
             const tile = this.grid[row][j];
-            if (tile && tile.element.style.opacity !== '0') {
+            if (tile && tile.element && tile.element.style.opacity !== '0') {
                 // 找到这个方块左侧第一个空位或方块
                 let targetCol = j;
                 let merged = false;
@@ -357,16 +349,19 @@ class Game2048 {
                     this.grid[row][j] = null;
                     tile.col = targetCol;
                     this.updateTilePosition(tile);
-                    if (targetCol !== j) moved = true;
+                    moved = true;
                 }
             }
         }
 
-        // 清除所有方块的merged类
+        // 重置所有方块的合并标记并清除merged类
         for (let j = 0; j < this.size; j++) {
             const tile = this.grid[row][j];
-            if (tile && tile.element) {
-                tile.element.classList.remove('merged');
+            if (tile) {
+                tile.merged = false;
+                if (tile.element) {
+                    tile.element.classList.remove('merged');
+                }
             }
         }
 
@@ -376,18 +371,10 @@ class Game2048 {
     processRowRight(row) {
         let moved = false;
 
-        // 先重置合并标记
-        for (let j = 0; j < this.size; j++) {
-            const tile = this.grid[row][j];
-            if (tile) {
-                tile.merged = false;
-            }
-        }
-
         // 从右向左处理每一列
         for (let j = this.size - 2; j >= 0; j--) {
             const tile = this.grid[row][j];
-            if (tile && tile.element.style.opacity !== '0') {
+            if (tile && tile.element && tile.element.style.opacity !== '0') {
                 // 找到这个方块右侧第一个空位或方块
                 let targetCol = j;
                 let merged = false;
@@ -426,16 +413,19 @@ class Game2048 {
                     this.grid[row][j] = null;
                     tile.col = targetCol;
                     this.updateTilePosition(tile);
-                    if (targetCol !== j) moved = true;
+                    moved = true;
                 }
             }
         }
 
-        // 清除所有方块的merged类
+        // 重置所有方块的合并标记并清除merged类
         for (let j = 0; j < this.size; j++) {
             const tile = this.grid[row][j];
-            if (tile && tile.element) {
-                tile.element.classList.remove('merged');
+            if (tile) {
+                tile.merged = false;
+                if (tile.element) {
+                    tile.element.classList.remove('merged');
+                }
             }
         }
 
@@ -445,18 +435,10 @@ class Game2048 {
     processColUp(col) {
         let moved = false;
 
-        // 先重置合并标记
-        for (let i = 0; i < this.size; i++) {
-            const tile = this.grid[i][col];
-            if (tile) {
-                tile.merged = false;
-            }
-        }
-
         // 从上到下处理每一行
         for (let i = 1; i < this.size; i++) {
             const tile = this.grid[i][col];
-            if (tile && tile.element.style.opacity !== '0') {
+            if (tile && tile.element && tile.element.style.opacity !== '0') {
                 // 找到这个方块上方第一个空位或方块
                 let targetRow = i;
                 let merged = false;
@@ -495,16 +477,19 @@ class Game2048 {
                     this.grid[i][col] = null;
                     tile.row = targetRow;
                     this.updateTilePosition(tile);
-                    if (targetRow !== i) moved = true;
+                    moved = true;
                 }
             }
         }
 
-        // 清除所有方块的merged类
+        // 重置所有方块的合并标记并清除merged类
         for (let i = 0; i < this.size; i++) {
             const tile = this.grid[i][col];
-            if (tile && tile.element) {
-                tile.element.classList.remove('merged');
+            if (tile) {
+                tile.merged = false;
+                if (tile.element) {
+                    tile.element.classList.remove('merged');
+                }
             }
         }
 
@@ -514,18 +499,10 @@ class Game2048 {
     processColDown(col) {
         let moved = false;
 
-        // 先重置合并标记
-        for (let i = 0; i < this.size; i++) {
-            const tile = this.grid[i][col];
-            if (tile) {
-                tile.merged = false;
-            }
-        }
-
         // 从下向上处理每一行
         for (let i = this.size - 2; i >= 0; i--) {
             const tile = this.grid[i][col];
-            if (tile && tile.element.style.opacity !== '0') {
+            if (tile && tile.element && tile.element.style.opacity !== '0') {
                 // 找到这个方块下方第一个空位或方块
                 let targetRow = i;
                 let merged = false;
@@ -564,16 +541,19 @@ class Game2048 {
                     this.grid[i][col] = null;
                     tile.row = targetRow;
                     this.updateTilePosition(tile);
-                    if (targetRow !== i) moved = true;
+                    moved = true;
                 }
             }
         }
 
-        // 清除所有方块的merged类
+        // 重置所有方块的合并标记并清除merged类
         for (let i = 0; i < this.size; i++) {
             const tile = this.grid[i][col];
-            if (tile && tile.element) {
-                tile.element.classList.remove('merged');
+            if (tile) {
+                tile.merged = false;
+                if (tile.element) {
+                    tile.element.classList.remove('merged');
+                }
             }
         }
 
